@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,15 +10,16 @@ public class playerMov : MonoBehaviour
     public float moveSpeed = 10f;
     public Rigidbody2D rb;
     public PolygonCollider2D coll;
-    private RaycastHit2D hit;
-    public BoundsInt area;
+    private BoundsInt area;
     public Tilemap tilemap;
-    public Grid grid;
+    public GridLayout grid;
+    public Vector3 position;
 
     // Start is called before the first frame update
     void Start()
     {
-      
+
+
     }
 
     // Update is called once per frame
@@ -27,23 +29,25 @@ public class playerMov : MonoBehaviour
         moveDir.x = Input.GetAxisRaw("Horizontal");
         moveDir.y = Input.GetAxisRaw("Vertical");
 
-        ////Cap direction vector to 1 to prevent diagonal movement from being faster than cardinal
-        //if (moveDir.x + moveDir.y > 1)
-        //{
-        //    moveDir.Normalize();  
-        //}
+        //Cap direction vector to 1 to prevent diagonal movement from being faster than cardinal
+        if (moveDir.x + moveDir.y > 1)
+        {
+           moveDir.Normalize();  
+        }
+
+        position = new Vector3(this.transform.position.x, this.transform.position.y, this.transform.position.z);
+        area.position = grid.WorldToCell(new Vector3(position.x + moveDir.x, position.y + moveDir.y, position.z));
+        // area.position = grid.WorldToCell(position);
+        area.min = new Vector3Int(area.position.x, area.position.y, area.position.z - 2);
+        area.max = new Vector3Int(area.position.x + 1, area.position.y + 1, area.position.z + 4);
+
+        TileBase[] tileArray = tilemap.GetTilesBlock(area);
+        for (int index = 0; index < tileArray.Length; index++)
+        {
+            Debug.Log($"Tile {index}: {tileArray[index]}");
+        }
         
-       // area.position = WorldToCell(this.transform.position);
-       // area.max = new Vector3Int(1,1,6);
-//
-       // print(area);
-//
-       // TileBase[] tileArray = tilemap.GetTilesBlock(area);
-       // //print(tileArray[0]);
-       // for (int index = 0; index < tileArray.Length; index++)
-       // {
-       //     print(tileArray[index]);
-       // }
+
     }
 
     private void FixedUpdate() {
@@ -51,7 +55,7 @@ public class playerMov : MonoBehaviour
 
         
         //Add velocity to player
-        rb.AddForce(moveDir * moveSpeed * Time.deltaTime);
+        rb.AddForce(moveDir.normalized * moveSpeed * Time.deltaTime);
     }
 
 
